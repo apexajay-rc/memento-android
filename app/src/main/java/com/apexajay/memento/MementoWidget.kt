@@ -5,41 +5,62 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
+import androidx.glance.action.clickable
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.*
+import androidx.glance.layout.Column
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.apexajay.memento.data.MementoDatabase
+import com.apexajay.memento.data.MissionStatus
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class MementoWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val dao = MementoDatabase.getInstance(context).mementoDao()
+        val mission = dao.getMissionForDay(LocalDate.now().toString())
         val days = ChronoUnit.DAYS.between(LocalDate.of(2006, 3, 20), LocalDate.now())
-        val prefs = context.getSharedPreferences("memento", Context.MODE_PRIVATE)
-        val mission = prefs.getString("mission", "Build something that works.") ?: "Build something that works."
-        val done = prefs.getBoolean("completed", false)
+
         provideContent {
             Column(
-                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color(0xFF08090C))).padding(14.dp),
-                verticalAlignment = Alignment.Vertical.Top
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .background(ColorProvider(Color(0xFF08090C)))
+                    .padding(14.dp)
+                    .clickable(actionStartActivity<MainActivity>())
             ) {
-                Row(modifier = GlanceModifier.fillMaxWidth()) {
-                    Text("☠ MEMENTO", style = TextStyle(color = ColorProvider(Color(0xFFF0EEEE)), fontSize = 16.sp))
-                    Text("MORTALITY TERMINAL", style = TextStyle(color = ColorProvider(Color(0xFFD64A4A)), fontSize = 9.sp))
-                }
-                Spacer(GlanceModifier.height(8.dp))
-                Text("YOU HAVE BEEN ALIVE FOR", style = TextStyle(color = ColorProvider(Color(0xFFA5A0A8)), fontSize = 9.sp))
-                Text("%,d DAYS".format(days), style = TextStyle(color = ColorProvider(Color(0xFFF0EEEE)), fontSize = 30.sp))
-                Text("YOU ARE NOT GETTING THIS DAY BACK.", style = TextStyle(color = ColorProvider(Color(0xFFD64A4A)), fontSize = 11.sp))
-                Spacer(GlanceModifier.height(8.dp))
-                Text("TODAY'S MISSION", style = TextStyle(color = ColorProvider(Color(0xFFA5A0A8)), fontSize = 9.sp))
-                Text(mission, style = TextStyle(color = ColorProvider(Color(0xFFF0EEEE)), fontSize = 13.sp))
-                Text(if (done) "✓ COMPLETED" else "○ NOT YET EXECUTED", style = TextStyle(color = ColorProvider(Color(if (done) 0xFF8BC59A else 0xFFD64A4A)), fontSize = 10.sp))
+                Text("☠ MEMENTO  /  EXECUTION TERMINAL", style = TextStyle(color = ColorProvider(Color(0xFFD64A4A)), fontSize = 10.sp))
+                Spacer(GlanceModifier.height(7.dp))
+                Text("%,d DAYS LIVED".format(days), style = TextStyle(color = ColorProvider(Color(0xFFF0EEEE)), fontSize = 27.sp))
+                Text("YOU ARE NOT GETTING THIS DAY BACK.", style = TextStyle(color = ColorProvider(Color(0xFFA5A0A8)), fontSize = 9.sp))
+                Spacer(GlanceModifier.height(10.dp))
+                Text("TODAY'S DIRECTIVE", style = TextStyle(color = ColorProvider(Color(0xFFA5A0A8)), fontSize = 9.sp))
+                Text(
+                    mission?.title ?: "NO DIRECTIVE COMMITTED",
+                    style = TextStyle(color = ColorProvider(Color(0xFFF0EEEE)), fontSize = 14.sp)
+                )
+                Text(
+                    when (mission?.status) {
+                        MissionStatus.COMPLETED -> "STATUS: COMPLETED"
+                        null -> "STATUS: AWAITING COMMITMENT"
+                        else -> "STATUS: OPEN"
+                    },
+                    style = TextStyle(
+                        color = ColorProvider(Color(if (mission?.status == MissionStatus.COMPLETED) 0xFF8BC59A else 0xFFD64A4A)),
+                        fontSize = 10.sp
+                    )
+                )
+                Text("OPEN MEMENTO TO RECORD WHAT YOU DO.", style = TextStyle(color = ColorProvider(Color(0xFFA5A0A8)), fontSize = 9.sp))
             }
         }
     }

@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">MEMENTO</string>
-    <string name="widget_description">A mortality-aware time and daily mission widget.</string>
+    <string name="widget_description">Your daily directive and tracked focus.</string>
 </resources>
