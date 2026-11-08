@@ -52,7 +52,7 @@ private fun MementoScreen() {
         java.time.LocalDate.of(2006, 3, 20), java.time.LocalDate.now()
     ) }
     val yearStart = java.time.LocalDate.now().withDayOfYear(1)
-    val yearDays = if (java.time.Year.isLeap(java.time.LocalDate.now().year)) 366 else 365
+    val yearDays = if (java.time.Year.isLeap(java.time.LocalDate.now().year.toLong())) 366 else 365
     val yearProgress = (java.time.temporal.ChronoUnit.DAYS.between(yearStart, java.time.LocalDate.now()).toDouble() / yearDays * 100).toInt()
 
     Surface(modifier = Modifier.fillMaxSize(), color = Ink) {
@@ -91,7 +91,7 @@ private fun MementoScreen() {
                 onClick = {
                     prefs.edit().putString("mission", mission).putBoolean("completed", false).apply()
                     completed = false
-                    scope.launch { MementoWidget.updateAll(context) }
+                    scope.launch { MementoWidget().updateAll(context) }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Blood, contentColor = Color.White)
@@ -101,7 +101,7 @@ private fun MementoScreen() {
                 Checkbox(checked = completed, onCheckedChange = {
                     completed = it
                     prefs.edit().putBoolean("completed", it).apply()
-                    scope.launch { MementoWidget.updateAll(context) }
+                    scope.launch { MementoWidget().updateAll(context) }
                 }, colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4E9A68)))
             }
             HorizontalDivider(color = Color(0xFF393039))
